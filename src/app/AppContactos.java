@@ -5,7 +5,7 @@
 package app;
 
 import java.awt.EventQueue;
-import vista.Ventana;
+import vista.VentanaPrincipal;
 
 /**
  *
@@ -21,7 +21,7 @@ public class AppContactos {
 	        public void run() {
 	            try {
 	                // Dentro de este método, se crea una instancia de la clase Ventana, que es la Ventana principal de la aplicación.
-	                Ventana frame = new Ventana();
+                         VentanaPrincipal frame = new VentanaPrincipal();
 	                // Establece la visibilidad de la Ventana como verdadera, lo que hace que la Ventana sea visible para el usuario.
 	                frame.setVisible(true);
 	            } catch (Exception e) {
