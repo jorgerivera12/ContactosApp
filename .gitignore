@@ -1,0 +1,41 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de compilación de NetBeans
+/build/
+/dist/
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/nbdist/*
+/manifest.mf
+
+# Archivos de IDE (general)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Dependencias descargadas (si las manejas manualmente)
+/lib/
+
+# Archivos de prueba / logs
+*.log
+hs_err_pid*
+
+# Archivos generados por el compilador Java
+**/*.class
+
+# Archivos de empaquetado
+*.jar
+*.war
+*.ear
+
+# Carpetas de sistema / usuario
+.settings/
+.metadata/
+
+# Directorios de Maven (en caso de usarlo más adelante)
+/target/
+
