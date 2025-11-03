@@ -4,8 +4,13 @@
  */
 package app;
 
+import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.Font;
+import java.util.Locale;
 import vista.VentanaPrincipal;
+
+import javax.swing.UIManager;
 
 /**
  *
@@ -17,19 +22,25 @@ public class AppContactos {
      * Launch the application.
      */
     public static void main(String[] args) {
-     	    EventQueue.invokeLater(new Runnable() {
-	        public void run() {
-	            try {
-	                // Dentro de este método, se crea una instancia de la clase Ventana, que es la Ventana principal de la aplicación.
-                         VentanaPrincipal frame = new VentanaPrincipal();
-	                // Establece la visibilidad de la Ventana como verdadera, lo que hace que la Ventana sea visible para el usuario.
-	                frame.setVisible(true);
-	            } catch (Exception e) {
-	                // En caso de que ocurra una excepción durante la creación o visualización de la Ventana, se imprime la traza de la pila de la excepción.
-	                e.printStackTrace();
-	            }
-	        }
-	    });
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.put("defaultFont", new Font("Segoe UI", Font.PLAIN, 13));
+            UIManager.put("Button.background", new Color(230, 240, 250));
+            UIManager.put("Button.foreground", Color.BLACK);
+            UIManager.put("Panel.background", new Color(245, 247, 250));
+            UIManager.put("Label.foreground", new Color(50, 50, 50));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Locale.setDefault(new Locale("es"));
+        EventQueue.invokeLater(() -> {
+            try {
+                new VentanaPrincipal(Locale.getDefault()).setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
     }
-    
+
 }

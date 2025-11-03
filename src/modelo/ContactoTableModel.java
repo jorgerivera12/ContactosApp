@@ -5,16 +5,24 @@
 package modelo;
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
+import i18n.Messages;
 /**
  *
  * @author jorge
  */
 public class ContactoTableModel extends AbstractTableModel {
-    private final String[] columnas = {"Nombre","Teléfono","Email","Categoría","Favorito"};
+    private String[] columnas;
     private List<Persona> datos;
 
-    public ContactoTableModel(List<Persona> datos) {
+    public ContactoTableModel(List<Persona> datos, Messages msg) {
         this.datos = datos;
+        this.columnas = new String[] {
+            msg.get("table.name"),
+            msg.get("table.phone"),
+            msg.get("table.email"),
+            msg.get("table.category"),
+            msg.get("table.favorite")
+        };
     }
 
     @Override public int getRowCount()    { return datos.size(); }
