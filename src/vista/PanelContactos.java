@@ -242,8 +242,7 @@ public class PanelContactos extends JPanel {
                     setBackground(new Color(35, 35, 35));
                 }
             }
-            
-            // Mostrar estrella o vacío
+           
             setText("");
             if (value != null && (Boolean) value) {
                 setIcon(starIcon);
