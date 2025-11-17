@@ -5,8 +5,7 @@ import vista.VentanaPrincipal;
 import vista.PanelContactos;
 import vista.DialogoContacto;
 import modelo.ContactoTableModel;
-import modelo.Persona;
-import modelo.ValidationResult;
+import modelo.*;
 import concurrencia.*;
 
 import javax.swing.*;
@@ -146,6 +145,9 @@ public class MainController {
      * REQUERIMIENTO 2: Búsqueda de contactos en segundo plano
      */
     private void busquedaConcurrente(PanelContactos pc) {
+        // Mostrar indicador de búsqueda inmediatamente
+        pc.mostrarIndicadorBusqueda(true);
+        
         // Cancelar búsqueda anterior si existe (debounce)
         if (searchTimer != null && searchTimer.isRunning()) {
             searchTimer.stop();
@@ -162,6 +164,9 @@ public class MainController {
                 new SearchWorker.SearchCallback() {
                     @Override
                     public void onSearchComplete(List<Persona> results) {
+                        // Ocultar indicador de búsqueda
+                        pc.mostrarIndicadorBusqueda(false);
+                        
                         // Actualizar filtro con resultados
                         if (searchTerm.isEmpty()) {
                             pc.getSorter().setRowFilter(null);
@@ -170,10 +175,15 @@ public class MainController {
                                 RowFilter.regexFilter("(?i)" + searchTerm)
                             );
                         }
+                        
+                        // Actualizar contador de resultados
+                        int resultCount = pc.getTabla().getRowCount();
+                        pc.actualizarContadorResultados(resultCount);
                     }
                     
                     @Override
                     public void onSearchError(Exception ex) {
+                        pc.mostrarIndicadorBusqueda(false);
                         NotificationManager.showError(view,
                             "Error en la búsqueda: " + ex.getMessage());
                     }

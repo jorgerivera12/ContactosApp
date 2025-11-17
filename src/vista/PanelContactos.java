@@ -11,12 +11,16 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Dimension;
 import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.Arc2D;
 import modelo.ContactoTableModel;
 import modelo.Persona;
 import i18n.Messages;
 
 /**
- * Panel de contactos mejorado para modo dark
+ * Panel de contactos mejorado con indicador de búsqueda en tiempo real
  * @author jorge
  */
 public class PanelContactos extends JPanel {
@@ -26,6 +30,12 @@ public class PanelContactos extends JPanel {
     private JProgressBar barraProgreso;
     private ContactoTableModel modelo;
     private TableRowSorter<ContactoTableModel> sorter;
+    
+    // Componentes para indicador de búsqueda
+    private JLabel lblBuscando;
+    private JLabel lblResultados;
+    private Timer spinnerTimer;
+    private int spinnerAngle = 0;
     
     // Colores modernos para modo dark
     private static final Color BG_DARK = new Color(18, 18, 18);
@@ -64,6 +74,12 @@ public class PanelContactos extends JPanel {
         
         // Conectar eventos al controlador
         controller.bindPanelContactos(this);
+        
+        // Inicializar timer para animación del spinner
+        spinnerTimer = new Timer(50, e -> {
+            spinnerAngle = (spinnerAngle + 15) % 360;
+            lblBuscando.repaint();
+        });
     }
     
     private JPanel createModernToolbar(Messages msg) {
@@ -81,23 +97,82 @@ public class PanelContactos extends JPanel {
         leftPanel.add(btnNuevo);
         leftPanel.add(btnExportar);
         
-        // Panel derecho: búsqueda
+        // Panel derecho: búsqueda con indicadores
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         rightPanel.setBackground(BG_DARK);
         
-        JLabel lblBuscar = new JLabel(msg.get("label.search"));
+        JLabel lblBuscar = new JLabel("🔍 " + msg.get("label.search"));
         lblBuscar.setForeground(TEXT_SECONDARY);
         lblBuscar.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         
         txtBuscar = createModernTextField();
         
+        // Indicador de búsqueda activa (spinner animado)
+        lblBuscando = new JLabel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (isVisible()) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                                       RenderingHints.VALUE_ANTIALIAS_ON);
+                    
+                    int size = 16;
+                    int x = (getWidth() - size) / 2;
+                    int y = (getHeight() - size) / 2;
+                    
+                    // Dibujar spinner circular
+                    g2.setColor(ACCENT_BLUE);
+                    g2.setStroke(new java.awt.BasicStroke(2.5f));
+                    Arc2D.Float arc = new Arc2D.Float(x, y, size, size, 
+                                                      spinnerAngle, 270, Arc2D.OPEN);
+                    g2.draw(arc);
+                }
+            }
+        };
+        lblBuscando.setPreferredSize(new Dimension(24, 24));
+        lblBuscando.setVisible(false);
+        
+        // Etiqueta de resultados
+        lblResultados = new JLabel();
+        lblResultados.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblResultados.setForeground(TEXT_SECONDARY);
+        lblResultados.setVisible(false);
+        
         rightPanel.add(lblBuscar);
         rightPanel.add(txtBuscar);
+        rightPanel.add(lblBuscando);
+        rightPanel.add(lblResultados);
         
         toolbar.add(leftPanel, BorderLayout.WEST);
         toolbar.add(rightPanel, BorderLayout.EAST);
         
         return toolbar;
+    }
+    
+    /**
+     * Muestra u oculta el indicador de búsqueda activa
+     */
+    public void mostrarIndicadorBusqueda(boolean mostrar) {
+        lblBuscando.setVisible(mostrar);
+        if (mostrar) {
+            spinnerTimer.start();
+            lblResultados.setVisible(false);
+        } else {
+            spinnerTimer.stop();
+        }
+    }
+    
+    /**
+     * Actualiza el contador de resultados de búsqueda
+     */
+    public void actualizarContadorResultados(int cantidad) {
+        if (txtBuscar.getText().isEmpty()) {
+            lblResultados.setVisible(false);
+        } else {
+            lblResultados.setText(cantidad + " resultado" + (cantidad != 1 ? "s" : ""));
+            lblResultados.setVisible(true);
+        }
     }
     
     private JButton createModernButton(String text, Color accentColor) {
@@ -220,8 +295,6 @@ public class PanelContactos extends JPanel {
     
     // Renderer especial para la columna de favoritos
     private class FavoriteRenderer extends DefaultTableCellRenderer {
-        private final Icon starIcon = createStarIcon();
-        private final Icon emptyIcon = createEmptyIcon();
         
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
@@ -232,6 +305,7 @@ public class PanelContactos extends JPanel {
             
             setHorizontalAlignment(CENTER);
             setBorder(new EmptyBorder(5, 12, 5, 12));
+            setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
             
             if (isSelected) {
                 setBackground(SELECTED_BG);
@@ -242,45 +316,19 @@ public class PanelContactos extends JPanel {
                     setBackground(new Color(35, 35, 35));
                 }
             }
-           
-            setText("");
+            
+            // Mostrar estrella emoji o guión
             if (value != null && (Boolean) value) {
-                setIcon(starIcon);
+                setText("⭐"); // Estrella para favorito
+                setForeground(new Color(234, 179, 8)); // Amarillo dorado
             } else {
-                setIcon(emptyIcon);
+                setText("—"); // Guión para no favorito
+                setForeground(TEXT_SECONDARY);
             }
             
+            setIcon(null); // No usar iconos personalizados
+            
             return c;
-        }
-        
-        private Icon createStarIcon() {
-            return new Icon() {
-                public int getIconWidth() { return 20; }
-                public int getIconHeight() { return 20; }
-                public void paintIcon(Component c, java.awt.Graphics g, int x, int y) {
-                    java.awt.Graphics2D g2 = (java.awt.Graphics2D) g;
-                    g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, 
-                            java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(234, 179, 8)); // Amarillo dorado
-                    int[] xPoints = {10, 12, 17, 13, 15, 10, 5, 7, 3, 8};
-                    int[] yPoints = {2, 8, 8, 12, 18, 14, 18, 12, 8, 8};
-                    for (int i = 0; i < xPoints.length; i++) {
-                        xPoints[i] += x;
-                        yPoints[i] += y;
-                    }
-                    g2.fillPolygon(xPoints, yPoints, 10);
-                }
-            };
-        }
-        
-        private Icon createEmptyIcon() {
-            return new Icon() {
-                public int getIconWidth() { return 20; }
-                public int getIconHeight() { return 20; }
-                public void paintIcon(Component c, java.awt.Graphics g, int x, int y) {
-                    // Icono vacío
-                }
-            };
         }
     }
     
